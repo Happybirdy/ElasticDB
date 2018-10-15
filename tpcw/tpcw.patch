@@ -1,0 +1,95 @@
+diff --git a/build.xml b/build.xml
+index cdb54da..f557cf5 100644
+--- a/build.xml
++++ b/build.xml
+@@ -73,11 +73,6 @@
+   				<include name="**/*.java"/>
+   			</fileset>
+ 		</copy>
+-		<copy tofile="${srcServDir}/TPCW_Database.java" filtering="on" preservelastmodified="true">
+-			<fileset dir="${basedir}" casesensitive="yes">
+-  				<include name="TPCW_Database.${dbName}.java"/>
+-  			</fileset>
+-		</copy>
+ 		<copy todir="${srcRbeDir}" filtering="on" preservelastmodified="true">
+ 			<fileset dir="${tpcwDir}/${rbeDir}" casesensitive="yes">
+   				<include name="**/*.java"/>
+@@ -156,7 +151,7 @@
+     			</and>
+   		</condition>
+   	</target>
+-    	<target name="dist" depends="build, checkDist" unless="dist.notNeeded" description="Build the *.war file from *.class files.">
++    	<target name="dist" depends="clean, build, checkDist" unless="dist.notNeeded" description="Build the *.war file from *.class files.">
+ 		<war destfile="${distDir}/tpcw.war" webxml="tpcw.xml">
+ 			<classes dir="${buildServDir}"/>	
+ 			<lib file="${cpJDBC}"/>
+@@ -182,7 +177,12 @@
+ 
+ 	<!-- Installation -->
+ 	<target name="inst" depends="dist" description="Copy war file to desired directory.">
+-		<delete file="${webappDir}/tpcw.war"/>
++		<delete includeEmptyDirs="true" failonerror="false">
++                	<fileset dir="${webappDir}/tpcw"> 
++    				<include name = "**" />
++                	</fileset>
++                </delete>
++                <delete file="${webappDir}/tpcw.war"/>
+ 		<copy file="${distDir}/tpcw.war" todir="${webappDir}"/>
+ 	</target>
+   
+diff --git a/main.properties b/main.properties
+index d34127b..6875cf6 100644
+--- a/main.properties
++++ b/main.properties
+@@ -10,13 +10,13 @@
+ ##############################################################################
+ 
+ #<!-- Path to servlet.jar, change this ... -->
+-cpServ=/usr/share/java/servlet-2.3.jar
++cpServ=/usr/share/java/servlet-api-3.0.jar
+ 
+ #<!-- Path to the JDBC driver for your DBMS, change this ... -->
+-cpJDBC=/usr/share/java/mkjdbc.jar
++cpJDBC=/home/ubuntu/elasticDB/tpcw/mysql-connector-java-5.1.32.jar
+ 
+ #<!-- Directory where tpcw.war will be put with task 'inst' -->
+-webappDir=/usr/share/tomcat4/dist/webapps
++webappDir=/var/lib/tomcat7/webapps
+ 
+ #<!-- Path to the Perl interpreter. -->
+ perlPath=/usr/bin/perl
+@@ -25,7 +25,7 @@ perlPath=/usr/bin/perl
+ imagesDir=${webappDir}/tpcw/Images
+ 
+ #<!-- Filter file for SQL queries, change this if needed -->
+-sqlFilter=sql-mckoi.properties
++sqlFilter=sql-mysql.properties
+ 
+ #dbName=std
+-dbName=mckoi
++dbName=tpcw
+diff --git a/tpcw.properties b/tpcw.properties
+index f8c2c06..2b1c9ca 100644
+--- a/tpcw.properties
++++ b/tpcw.properties
+@@ -11,16 +11,16 @@
+ 
+ # set the JDBC parameters
+ #jdbc.driver=com.mysql.jdbc.Driver
+-jdbc.driver=com.mckoi.JDBCDriver
+-jdbc.path=jdbc:mckoi://localhost/?user=admin&password=admin
++jdbc.driver=com.mysql.jdbc.Driver
++jdbc.path=jdbc:mysql://localhost:3306/tpcw?user=root&password=TigerBit!2016
+ jdbc.connPoolMax=100
+ 
+ sql.bigCharType=varchar(500)
+ #sql.bigCharType=tinyblob
+ 
+ # set the values you want for tpcw
+-num.item=1000
+-num.eb=10
++num.item=10000
++num.eb=100
+ 
+ # use the right session string for your servlet container
+ #sessionIdString=$sessionid$
