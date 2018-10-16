@@ -10,6 +10,7 @@ import java.sql.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bittiger.logic.LRUCache;
 import com.bittiger.logic.LoadBalancer;
 import com.bittiger.logic.Server;
 import com.bittiger.querypool.QueryMetaData;
@@ -21,6 +22,8 @@ public class UserSession extends Thread {
 	private boolean suspendThread = false;
 	private BlockingQueue<Integer> queue;
 	private int id;
+	private int lruCacheCap = 10;
+	private LRUCache lruCache;
 
 	private static transient final Logger LOG = LoggerFactory.getLogger(UserSession.class);
 
@@ -31,6 +34,7 @@ public class UserSession extends Thread {
 		this.client = client;
 		this.tpcw = client.getTpcw();
 		this.rand = new Random();
+		this.lruCache = new LRUCache(lruCacheCap);
 	}
 
 	private long TPCWthinkTime(double mean) {
@@ -144,6 +148,7 @@ public class UserSession extends Thread {
 			Connection connection = null;
 			Statement stmt = null;
 			try {
+				lruCache.put(queryclass, 1);
 				connection = getNextConnection(queryclass);
 				String classname = "com.bittiger.querypool." + queryclass;
 				QueryMetaData query = (QueryMetaData) Class.forName(classname).newInstance();
